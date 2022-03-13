@@ -41,7 +41,7 @@ export abstract class CanvasObject {
 
   protected draw() {
     const { x, y } = this.position;
-    
+
     if (this.img) {
       this.ctx.drawImage(this.img, x, y);
     } else {
@@ -50,4 +50,18 @@ export abstract class CanvasObject {
   }
 
   abstract update(): void;
+
+  // extras
+
+  get totalY() {
+    return this.position.y + this.height;
+  }
+
+  get totalX() {
+    return this.position.x + this.width;
+  }
+
+  protected onGround() {
+    return this.totalY + this.velocity.y >= this.canvas.height;
+  }
 }

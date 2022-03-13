@@ -1,1 +1,1 @@
-# Mario like web game
+# Mario type web game

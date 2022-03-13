@@ -19,17 +19,4 @@ export class Player extends CanvasObject {
       this.velocity.y += this.gravity;
     }
   }
-
-  // extra
-
-  onGround() {
-    return this.totalY + this.velocity.y >= this.canvas.height;
-  }
-
-  get totalY() {
-    return this.position.y + this.height;
-  }
-  get totalX() {
-    return this.position.x + this.width;
-  }
 }
