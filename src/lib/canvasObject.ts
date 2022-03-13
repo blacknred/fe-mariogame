@@ -1,3 +1,7 @@
 export abstract class CanvasObject {
-  constructor(protected ctx: CanvasRenderingContext2D) {}
+  ctx: CanvasRenderingContext2D;
+
+  constructor(protected canvas: HTMLCanvasElement) {
+    this.ctx = this.canvas.getContext('2d')!;
+  }
 }
