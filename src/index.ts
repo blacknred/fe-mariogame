@@ -1,4 +1,5 @@
-import { Player } from "./lib";
+import { Player, Platform, Input } from "./lib";
+import { Keys } from "./lib/typings";
 
 window.addEventListener("load", function () {
   // create canvas
@@ -9,41 +10,26 @@ window.addEventListener("load", function () {
   const ctx = canvas.getContext("2d")!;
 
   // init
-  const player = new Player(canvas);
+  const input = new Input(Object.values(Keys));
+  const player = new Player(canvas, {
+    x: 100,
+    y: 100,
+  });
+  const platforms = [
+    new Platform(canvas, {
+      x: 200,
+      y: 100,
+    }),
+    new Platform(canvas, {
+      x: 500,
+      y: 200,
+    }),
+  ];
 
-  // input
   this.addEventListener("keydown", (e: KeyboardEvent) => {
     switch (e.key) {
-      case "ArrowDown":
-        break;
       case "ArrowUp":
         player.velocity.y -= 20;
-        break;
-      case "ArrowLeft":
-        player.velocity.x = -5;
-        break;
-      case "ArrowRight":
-        player.velocity.x = 5;
-        break;
-      case "Enter":
-        break;
-      default:
-    }
-  });
-
-  this.addEventListener("keyup", (e: KeyboardEvent) => {
-    switch (e.key) {
-      case "ArrowDown":
-        break;
-      case "ArrowUp":
-        break;
-      case "ArrowLeft":
-        player.velocity.x = 0;
-        break;
-      case "ArrowRight":
-        player.velocity.x = 0;
-        break;
-      case "Enter":
         break;
       default:
     }
@@ -53,7 +39,44 @@ window.addEventListener("load", function () {
   function animate() {
     requestAnimationFrame(animate);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // update
     player.update();
+    platforms.forEach((platform) => {
+      platform.update();
+    });
+
+    // horizontal move
+    if (input.has(Keys.right) && player.position.x < 400) {
+      player.velocity.x = 5;
+    } else if (input.has(Keys.left) && player.position.x > 100) {
+      player.velocity.x = -5;
+    } else {
+      player.velocity.x = 0;
+
+      if (input.has(Keys.right)) {
+        platforms.forEach((platform) => {
+          platform.position.x -= 5;
+        });
+      } else if (input.has(Keys.left)) {
+        platforms.forEach((platform) => {
+          platform.position.x += 5;
+        });
+      }
+    }
+
+    // collision detection
+    platforms.forEach((platform) => {
+      if (
+        player.totalY <= platform.position.y &&
+        player.totalY + player.velocity.y >= platform.position.y &&
+        player.totalX >= platform.position.x &&
+        player.position.x <= platform.position.x + platform.width
+      ) {
+        player.velocity.y = 0;
+      }
+    });
   }
+
   animate();
 });
