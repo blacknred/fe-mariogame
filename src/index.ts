@@ -1,8 +1,13 @@
 import { Keys } from "./lib/typings";
 import { Player, Platform, Input, Decoration } from "./lib";
 import platformImg from "./sprites/platform.png";
+import platform2Img from "./sprites/platform2.png";
 import hillsImg from "./sprites/hills.png";
 import bgImg from "./sprites/bg.png";
+import playerStandRight from "./sprites/playerStandRight.png";
+import playerStandLeft from "./sprites/playerStandLeft.png";
+import playerRunRight from "./sprites/playerRunRight.png";
+import playerRunLeft from "./sprites/playerRunLeft.png";
 import "./style.css";
 
 window.addEventListener("load", function () {
@@ -13,55 +18,101 @@ window.addEventListener("load", function () {
   canvas.height = 576;
 
   // scoring
-  let scrollOffset = 0;
-
+  let scrollOffset: number;
   // input handler
-  const input = new Input(Object.values(Keys));
-
+  let input: Input;
   // player
-  const player = new Player(canvas, {
-    x: 100,
-    y: 100,
-  });
-  this.addEventListener("keydown", (e: KeyboardEvent) => {
-    switch (e.key) {
-      case Keys.up:
-      case Keys.space:
-        player.velocity.y -= 20;
-        break;
-      default:
-    }
-  });
-
+  let player: Player;
   // decorations
-  const decorations = [
-    new Decoration(canvas, {
-      img: bgImg,
-      x: -1,
-      y: -1,
-    }),
-    new Decoration(canvas, {
-      img: hillsImg,
-      x: -1,
-      y: -1,
-    }),
-  ];
-
+  let decorations: Decoration[];
   // platforms
-  const platforms = [
-    new Platform(canvas, {
-      img: platformImg,
-      x: -1,
-      y: 470,
-    }),
-    new Platform(canvas, {
-      img: platformImg,
-      x: 578,
-      y: 470,
-    }),
-  ];
+  let platforms: Platform[];
 
-  /** Game engine */
+  /** Init */
+
+  function init(this: any) {
+    scrollOffset = 0;
+    input = new Input(Object.values(Keys));
+    player = new Player(canvas, {
+      img: playerStandRight,
+      x: 100,
+      y: 100,
+    });
+    function run(e: KeyboardEvent) {
+      switch (e.key) {
+        case Keys.up:
+        case Keys.space:
+          player.velocity.y -= 20;
+          break;
+        case Keys.right:
+          player.setImg(playerRunRight);
+          player.cropWidth = 341;
+          player.width = 129;
+          break;
+        case Keys.left:
+          player.setImg(playerRunLeft);
+          player.cropWidth = 341;
+          player.width = 129;
+          break;
+        default:
+      }
+    }
+    function stand(e: KeyboardEvent) {
+      switch (e.key) {
+        case Keys.right:
+          player.setImg(playerStandRight);
+          player.cropWidth = 177;
+          player.width = 66;
+          break;
+        case Keys.left:
+          player.setImg(playerStandLeft);
+          player.cropWidth = 177;
+          player.width = 66;
+          break;
+        default:
+      }
+    }
+    removeEventListener("keydown", run.bind(this));
+    removeEventListener("keyup", stand.bind(this));
+    addEventListener("keydown", run.bind(this));
+    addEventListener("keyup", stand.bind(this));
+    decorations = [
+      new Decoration(canvas, {
+        img: bgImg,
+        x: -1,
+        y: -1,
+      }),
+      new Decoration(canvas, {
+        img: hillsImg,
+        x: -1,
+        y: -1,
+      }),
+    ];
+    platforms = [
+      new Platform(canvas, {
+        img: platform2Img,
+        x: 580 + 300,
+        y: 270,
+      }),
+      new Platform(canvas, {
+        img: platformImg,
+        x: -1,
+        y: 470,
+      }),
+      new Platform(canvas, {
+        img: platformImg,
+        x: 580 + 100,
+        y: 470,
+      }),
+      new Platform(canvas, {
+        img: platformImg,
+        x: 580 * 2 + 200,
+        y: 470,
+      }),
+    ];
+  }
+
+  /** Engine */
 
   function animate() {
     // recursive running
@@ -85,38 +136,41 @@ window.addEventListener("load", function () {
 
     // player moves horizontally only within 300px
     if (input.has(Keys.right) && player.position.x < 400) {
-      player.velocity.x = 5;
-    } else if (input.has(Keys.left) && player.position.x > 100) {
-      player.velocity.x = -5;
+      player.velocity.x = player.speed;
+    } else if (
+      input.has(Keys.left) &&
+      (player.position.x > 100 || (scrollOffset === 0 && player.position.x > 0))
+    ) {
+      player.velocity.x = -player.speed;
     } else {
       player.velocity.x = 0;
 
       // while player stands
       if (input.has(Keys.right)) {
         // enlarge scoring
-        scrollOffset += 5;
+        scrollOffset += player.speed;
 
         // scroll platforms
         platforms.forEach((platform) => {
-          platform.position.x -= 5;
+          platform.position.x -= player.speed;
         });
 
         // scroll decorations with parallax due the smaller step
         decorations.forEach((decoration) => {
-          decoration.position.x -= 2;
+          decoration.position.x -= player.speed * 0.5;
         });
-      } else if (input.has(Keys.left)) {
+      } else if (input.has(Keys.left) && scrollOffset > 0) {
         // reduce scoring
-        scrollOffset -= 5;
+        scrollOffset -= player.speed;
 
         // scroll platforms
         platforms.forEach((platform) => {
-          platform.position.x += 5;
+          platform.position.x += player.speed;
         });
 
         // scroll decorations with parallax due the smaller step
         decorations.forEach((decoration) => {
-          decoration.position.x += 2;
+          decoration.position.x += player.speed * 0.5;
         });
       }
     }
@@ -132,8 +186,19 @@ window.addEventListener("load", function () {
         player.velocity.y = 0;
       }
     });
+
+    // detect win
+    if (scrollOffset > 2000) {
+      console.log("you are win");
+    }
+
+    // detect lose
+    if (player.position.y > canvas.height) {
+      init();
+    }
   }
 
-  // Run
+  // run
+  init();
   animate();
 });

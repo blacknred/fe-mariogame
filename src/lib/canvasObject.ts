@@ -2,8 +2,9 @@ import { Axes } from "./typings";
 
 export abstract class CanvasObject {
   // canvas & img ref
-  private ctx: CanvasRenderingContext2D;
-  private img?: HTMLImageElement;
+  protected ctx: CanvasRenderingContext2D;
+  protected img?: HTMLImageElement;
+  protected imgFrame = 0;
 
   // object size
   public width = 0;
@@ -18,6 +19,9 @@ export abstract class CanvasObject {
     y: 0,
   };
 
+  // move speed
+  public speed = 10;
+
   // move acceleration
   protected gravity = 1.5;
 
@@ -31,11 +35,10 @@ export abstract class CanvasObject {
     this.position = position;
 
     if (img) {
-      this.img = new Image();
-      this.img.src = img;
+      this.setImg(img);
 
-      this.width = this.img.width;
-      this.height = this.img.height;
+      this.width = this.img!.width;
+      this.height = this.img!.height;
     }
   }
 
@@ -49,7 +52,7 @@ export abstract class CanvasObject {
     }
   }
 
-  abstract update(): void;
+  public abstract update(): void;
 
   // extras
 
@@ -63,5 +66,10 @@ export abstract class CanvasObject {
 
   protected onGround() {
     return this.totalY + this.velocity.y >= this.canvas.height;
+  }
+
+  setImg(src: string) {
+    this.img = new Image();
+    this.img.src = src;
   }
 }

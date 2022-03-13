@@ -1,5 +1,5 @@
 {
-  "name": "fe-mariogame",
+  "name": "fe-runnergame",
   "version": "1.0.0",
   "description": "web game",
   "main": "index.js",
@@ -8,9 +8,9 @@
   "author": "Dmitry Tretyakov <tretyakov.dmi@gmail.com> (https://blacknred.github.io/)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/blacknred/fe-mariogame.git"
+    "url": "git+https://github.com/blacknred/fe-runnergame.git"
   },
-  "homepage": "https://github.com/blacknred/fe-mariogame#readme",
+  "homepage": "https://github.com/blacknred/fe-runnergame#readme",
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production"
