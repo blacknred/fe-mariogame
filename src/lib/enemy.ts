@@ -1,6 +1,6 @@
 import { CanvasObject } from "./canvasObject";
 
-export class Platform extends CanvasObject {
+export class Enemy extends CanvasObject {
   update() {
     this.draw()
   }

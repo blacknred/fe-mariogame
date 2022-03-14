@@ -13,6 +13,14 @@ export type Axes = {
 };
 
 export type Size = {
-  w: number;
-  h: number;
+  width: number;
+  height: number;
+};
+
+export type Sprite = {
+  img: HTMLImageElement;
+  cropWidth?: number;
+  frame?: number;
+  maxFrames?: number;
+  maxWidth?: number;
 };

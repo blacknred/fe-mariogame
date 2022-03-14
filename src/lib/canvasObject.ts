@@ -1,10 +1,11 @@
-import { Axes } from "./typings";
+import { Axes, Size, Sprite } from "./typings";
 
+export interface CanvasObjectOpts extends Axes, Partial<Size> {
+  imgs?: (string | (Omit<Sprite, "img"> & { img: string }))[];
+}
 export abstract class CanvasObject {
-  // canvas & img ref
+  // canvas ref
   protected ctx: CanvasRenderingContext2D;
-  protected img?: HTMLImageElement;
-  protected imgFrame = 0;
 
   // object size
   public width = 0;
@@ -19,34 +20,53 @@ export abstract class CanvasObject {
     y: 0,
   };
 
-  // move speed
+  // move speed & acceleration
   public speed = 10;
-
-  // move acceleration
   protected gravity = 1.5;
 
-  constructor(
-    protected canvas: HTMLCanvasElement,
-    opts: Axes & { img?: string }
-  ) {
-    const { img, ...position } = opts;
+  // img
+  protected img?: Sprite;
+  protected imgList?: Sprite[];
+
+  constructor(protected canvas: HTMLCanvasElement, opts: CanvasObjectOpts) {
+    const { imgs, width, height, ...position } = opts;
 
     this.ctx = this.canvas.getContext("2d")!;
     this.position = position;
 
-    if (img) {
-      this.setImg(img);
+    if (Array.isArray(imgs)) {
+      this.imgList = imgs.map((img) => {
+        const image = new Image();
 
-      this.width = this.img!.width;
-      this.height = this.img!.height;
+        if (typeof img !== "string") {
+          image.src = img.img;
+          return { ...img, img: image, frame: 0 };
+        } else {
+          image.src = img;
+          return { img: image };
+        }
+      });
+
+      this.img = this.imgList[0];
     }
+
+    this.width = width || this.img?.img.width || this.width;
+    this.height = height || this.img?.img.height || this.height;
   }
 
   protected draw() {
     const { x, y } = this.position;
 
     if (this.img) {
-      this.ctx.drawImage(this.img, x, y);
+      const { img, frame, cropWidth } = this.img;
+
+      if (cropWidth && frame) {
+        const crop = [cropWidth * frame, 0, cropWidth, img.height] as const;
+
+        this.ctx.drawImage(img, ...crop, x, y, this.width, this.height);
+      } else {
+        this.ctx.drawImage(img, x, y, this.width, this.height);
+      }
     } else {
       this.ctx.fillRect(x, y, this.width, this.height);
     }
@@ -66,10 +86,5 @@ export abstract class CanvasObject {
 
   protected onGround() {
     return this.totalY + this.velocity.y >= this.canvas.height;
-  }
-
-  setImg(src: string) {
-    this.img = new Image();
-    this.img.src = src;
   }
 }

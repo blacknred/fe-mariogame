@@ -1,13 +1,13 @@
 import { Keys } from "./lib/typings";
-import { Player, Platform, Input, Decoration } from "./lib";
+import { Player, Input, Decoration } from "./lib";
 import platformImg from "./sprites/platform.png";
 import platform2Img from "./sprites/platform2.png";
 import hillsImg from "./sprites/hills.png";
 import bgImg from "./sprites/bg.png";
-import playerStandRight from "./sprites/playerStandRight.png";
-import playerStandLeft from "./sprites/playerStandLeft.png";
-import playerRunRight from "./sprites/playerRunRight.png";
-import playerRunLeft from "./sprites/playerRunLeft.png";
+import playerStandRight from "./sprites/player_stand_right.png";
+import playerStandLeft from "./sprites/player_stand_left.png";
+import playerRunRight from "./sprites/player_run_right.png";
+import playerRunLeft from "./sprites/player_run_left.png";
 import "./style.css";
 
 window.addEventListener("load", function () {
@@ -26,86 +26,58 @@ window.addEventListener("load", function () {
   // decorations
   let decorations: Decoration[];
   // platforms
-  let platforms: Platform[];
+  let platforms: Decoration[];
 
   /** Init */
 
   function init(this: any) {
     scrollOffset = 0;
     input = new Input(Object.values(Keys));
+
     player = new Player(canvas, {
-      img: playerStandRight,
+      imgs: [
+        { img: playerStandRight, cropWidth: 177, maxWidth: 66, maxFrames: 30 },
+        { img: playerStandLeft, cropWidth: 177, maxWidth: 66, maxFrames: 30 },
+        { img: playerRunRight, cropWidth: 341, maxWidth: 129, maxFrames: 59 },
+        { img: playerRunLeft, cropWidth: 341, maxWidth: 129, maxFrames: 59 },
+      ],
+      width: 66,
+      height: 150,
       x: 100,
       y: 100,
     });
-    function run(e: KeyboardEvent) {
-      switch (e.key) {
-        case Keys.up:
-        case Keys.space:
-          player.velocity.y -= 20;
-          break;
-        case Keys.right:
-          player.setImg(playerRunRight);
-          player.cropWidth = 341;
-          player.width = 129;
-          break;
-        case Keys.left:
-          player.setImg(playerRunLeft);
-          player.cropWidth = 341;
-          player.width = 129;
-          break;
-        default:
-      }
-    }
-    function stand(e: KeyboardEvent) {
-      switch (e.key) {
-        case Keys.right:
-          player.setImg(playerStandRight);
-          player.cropWidth = 177;
-          player.width = 66;
-          break;
-        case Keys.left:
-          player.setImg(playerStandLeft);
-          player.cropWidth = 177;
-          player.width = 66;
-          break;
-        default:
-      }
-    }
-    removeEventListener("keydown", run.bind(this));
-    removeEventListener("keyup", stand.bind(this));
-    addEventListener("keydown", run.bind(this));
-    addEventListener("keyup", stand.bind(this));
+
     decorations = [
       new Decoration(canvas, {
-        img: bgImg,
+        imgs: [bgImg],
         x: -1,
         y: -1,
       }),
       new Decoration(canvas, {
-        img: hillsImg,
+        imgs: [hillsImg],
         x: -1,
         y: -1,
       }),
     ];
+
     platforms = [
-      new Platform(canvas, {
-        img: platform2Img,
+      new Decoration(canvas, {
+        imgs: [platform2Img],
         x: 580 + 300,
         y: 270,
       }),
-      new Platform(canvas, {
-        img: platformImg,
+      new Decoration(canvas, {
+        imgs: [platformImg],
         x: -1,
         y: 470,
       }),
-      new Platform(canvas, {
-        img: platformImg,
+      new Decoration(canvas, {
+        imgs: [platformImg],
         x: 580 + 100,
         y: 470,
       }),
-      new Platform(canvas, {
-        img: platformImg,
+      new Decoration(canvas, {
+        imgs: [platformImg],
         x: 580 * 2 + 200,
         y: 470,
       }),
@@ -131,7 +103,7 @@ window.addEventListener("load", function () {
       platform.update();
     });
 
-    // render player
+    // render player 
     player.update();
 
     // player moves horizontally only within 300px
