@@ -18,13 +18,13 @@ export class Player extends CanvasObject {
     // next sprite frame
     if (this.img?.frame != null) {
       this.img.frame!++;
-      if (this.img.frame! > this.img.maxFrames!) {
+      if (this.img.frame! > this.img.framesQnt!) {
         this.img.frame = 0;
       }
     }
 
     // rerender
-    this.draw();
+    super.update();
 
     // step
     this.position.x += this.velocity.x;

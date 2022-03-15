@@ -13,12 +13,10 @@ export abstract class CanvasObject {
 
   // start point to drawing
   public position: Axes;
+  private initialPosition: Axes;
 
   // direction & speed of object move
-  public velocity: Axes = {
-    x: 0,
-    y: 0,
-  };
+  public velocity: Axes = { x: 0, y: 0 };
 
   // move speed & acceleration
   public speed = 10;
@@ -32,6 +30,7 @@ export abstract class CanvasObject {
     const { imgs, width, height, ...position } = opts;
 
     this.ctx = this.canvas.getContext("2d")!;
+    this.initialPosition = { ...position };
     this.position = position;
 
     if (Array.isArray(imgs)) {
@@ -54,7 +53,7 @@ export abstract class CanvasObject {
     this.height = height || this.img?.img.height || this.height;
   }
 
-  protected draw() {
+  private draw() {
     const { x, y } = this.position;
 
     if (this.img) {
@@ -72,7 +71,17 @@ export abstract class CanvasObject {
     }
   }
 
-  public abstract update(): void;
+  public update() {
+    this.draw();
+  }
+
+  public reset() {
+    this.velocity = { x: 0, y: 0 };
+    this.position = { ...this.initialPosition };
+    if (this.imgList?.length) {
+      this.img = this.imgList[0];
+    }
+  }
 
   // extras
 

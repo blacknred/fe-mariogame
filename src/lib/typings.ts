@@ -21,6 +21,6 @@ export type Sprite = {
   img: HTMLImageElement;
   cropWidth?: number;
   frame?: number;
-  maxFrames?: number;
+  framesQnt?: number;
   maxWidth?: number;
 };
