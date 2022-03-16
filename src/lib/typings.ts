@@ -4,6 +4,7 @@ export enum Keys {
   left = "ArrowLeft",
   right = "ArrowRight",
   enter = "Enter",
+  pause = "Escape",
   space = " ",
 }
 
@@ -21,6 +22,6 @@ export type Sprite = {
   img: HTMLImageElement;
   cropWidth?: number;
   frame?: number;
-  framesQnt?: number;
+  maxFrames?: number;
   maxWidth?: number;
 };

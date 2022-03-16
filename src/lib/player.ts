@@ -1,24 +1,39 @@
-import { CanvasObject, CanvasObjectOpts } from "./canvasObject";
+import { CanvasObject } from "./canvasObject";
+import { Input } from "./input";
 import { Keys } from "./typings";
 
 export class Player extends CanvasObject {
-  constructor(protected canvas: HTMLCanvasElement, opts: CanvasObjectOpts) {
-    super(canvas, opts);
+  // constructor(protected canvas: HTMLCanvasElement, opts: CanvasObjectOpts) {
+  //   super(canvas, opts);
 
-    this.run = this.run.bind(this);
-    this.stand = this.stand.bind(this);
+  //   // this.run = this.run.bind(this);
+  //   // this.stand = this.stand.bind(this);
 
-    removeEventListener("keydown", this.run);
-    removeEventListener("keyup", this.stand);
-    addEventListener("keydown", this.run);
-    addEventListener("keyup", this.stand);
-  }
+  //   // removeEventListener("keydown", this.run);
+  //   // removeEventListener("keyup", this.stand);
+  //   // addEventListener("keydown", this.run);
+  //   // addEventListener("keyup", this.stand);
+  // }
 
-  update() {
+  update(input?: Input) {
+    // controls
+    if (input?.has(Keys.up) || input?.has(Keys.space)) {
+      this.velocity.y -= 20;
+    } else if (input?.has(Keys.right)) {
+      this.img = this.imgList![2];
+      this.width = this.img.maxWidth!;
+    } else if (input?.has(Keys.left)) {
+      this.img = this.imgList![3];
+      this.width = this.img.maxWidth!;
+    } else {
+      this.img = this.imgList![0];
+      this.width = this.img.maxWidth!;
+    }
+
     // next sprite frame
     if (this.img?.frame != null) {
       this.img.frame!++;
-      if (this.img.frame! > this.img.framesQnt!) {
+      if (this.img.frame > this.img.maxFrames!) {
         this.img.frame = 0;
       }
     }
@@ -36,35 +51,35 @@ export class Player extends CanvasObject {
     }
   }
 
-  run(e: KeyboardEvent) {
-    switch (e.key) {
-      case Keys.up:
-      case Keys.space:
-        this.velocity.y -= 20;
-        break;
-      case Keys.right:
-        this.img = this.imgList![2];
-        this.width = this.img.maxWidth!;
-        break;
-      case Keys.left:
-        this.img = this.imgList![3];
-        this.width = this.img.maxWidth!;
-        break;
-      default:
-    }
-  }
+  // run(e: KeyboardEvent) {
+  //   switch (e.key) {
+  //     case Keys.up:
+  //     case Keys.space:
+  //       this.velocity.y -= 20;
+  //       break;
+  //     case Keys.right:
+  //       this.img = this.imgList![2];
+  //       this.width = this.img.maxWidth!;
+  //       break;
+  //     case Keys.left:
+  //       this.img = this.imgList![3];
+  //       this.width = this.img.maxWidth!;
+  //       break;
+  //     default:
+  //   }
+  // }
 
-  stand(e: KeyboardEvent) {
-    switch (e.key) {
-      case Keys.right:
-        this.img = this.imgList![0];
-        this.width = this.img.maxWidth!;
-        break;
-      case Keys.left:
-        this.img = this.imgList![1];
-        this.width = this.img.maxWidth!;
-        break;
-      default:
-    }
-  }
+  // stand(e: KeyboardEvent) {
+  //   switch (e.key) {
+  //     case Keys.right:
+  //       this.img = this.imgList![0];
+  //       this.width = this.img.maxWidth!;
+  //       break;
+  //     case Keys.left:
+  //       this.img = this.imgList![1];
+  //       this.width = this.img.maxWidth!;
+  //       break;
+  //     default:
+  //   }
+  // }
 }

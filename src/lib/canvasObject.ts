@@ -1,3 +1,4 @@
+import { Input } from "./input";
 import { Axes, Size, Sprite } from "./typings";
 
 export interface CanvasObjectOpts extends Axes, Partial<Size> {
@@ -71,7 +72,7 @@ export abstract class CanvasObject {
     }
   }
 
-  public update() {
+  public update(input?: Input) {
     this.draw();
   }
 
