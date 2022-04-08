@@ -13,8 +13,8 @@ export abstract class CanvasObject {
   public height = 0;
 
   // start point to drawing
-  public position: Axes;
   private initialPosition: Axes;
+  public position: Axes;
 
   // direction & speed of object move
   public velocity: Axes = { x: 0, y: 0 };

@@ -23,20 +23,35 @@ addEventListener("load", function () {
     new Input(Object.values(Keys)),
     new Player(canvas, {
       imgs: [
-        { img: playerStandRight, cropWidth: 177, maxWidth: 66, maxFrames: 59 },
-        { img: playerStandLeft, cropWidth: 177, maxWidth: 66, maxFrames: 59 },
-        { img: playerRunRight, cropWidth: 341, maxWidth: 129, maxFrames: 29 },
-        { img: playerRunLeft, cropWidth: 341, maxWidth: 129, maxFrames: 29 },
+        {
+          img: playerStandRight,
+          cropWidth: 177,
+          maxWidth: 66,
+          maxFrame: 59,
+        },
+        { img: playerStandLeft, cropWidth: 177, maxWidth: 66, maxFrame: 59 },
+        { img: playerRunRight, cropWidth: 341, maxWidth: 129, maxFrame: 29 },
+        { img: playerRunLeft, cropWidth: 341, maxWidth: 129, maxFrame: 29 },
       ],
       width: 66,
       height: 150,
       x: 100,
       y: 100,
-    }, ),
+    }),
     [
       new Decoration(canvas, {
         imgs: [platform2Img],
         x: 580 + 300,
+        y: 270,
+      }),
+      new Decoration(canvas, {
+        imgs: [platform2Img],
+        x: 580 * 2 + 600,
+        y: 270,
+      }),
+      new Decoration(canvas, {
+        imgs: [platform2Img],
+        x: 580 * 5 + 400,
         y: 270,
       }),
       new Decoration(canvas, {
@@ -46,13 +61,28 @@ addEventListener("load", function () {
       }),
       new Decoration(canvas, {
         imgs: [platformImg],
-        x: 580 + 100,
+        x: 580 + 150,
+        y: 450,
+      }),
+      new Decoration(canvas, {
+        imgs: [platformImg],
+        x: 580 * 2 + 400,
+        y: 450,
+      }),
+      new Decoration(canvas, {
+        imgs: [platformImg],
+        x: 580 * 3 + 600,
+        y: 510,
+      }),
+      new Decoration(canvas, {
+        imgs: [platformImg],
+        x: 580 * 4 + 850,
         y: 470,
       }),
       new Decoration(canvas, {
         imgs: [platformImg],
-        x: 580 * 2 + 200,
-        y: 470,
+        x: 580 * 5 + 1000,
+        y: 450,
       }),
     ],
     [
@@ -69,5 +99,5 @@ addEventListener("load", function () {
     ]
   );
 
-  game.run();
+  game.start();
 });

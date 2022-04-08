@@ -5,10 +5,9 @@ export class Game {
   // canvas context
   ctx: CanvasRenderingContext2D;
 
-  // scoring
-  scrollOffset = 0;
-  isGameOver = false;
+  // state
   isPaused = false;
+  state: "idle" | "win" | "lose" = "idle";
   score = 0;
 
   constructor(
@@ -21,25 +20,34 @@ export class Game {
     this.ctx = canvas.getContext("2d")!;
 
     this.animate = this.animate.bind(this);
+    this.input.on(Keys.pause, this.pause.bind(this));
+  }
+
+  private pause() {
+    if (this.state === "idle") {
+      this.isPaused = !this.isPaused;
+    }
   }
 
   private move() {
-    // move logic: player moves horizontally only within 300px
+    // player & decorations move logic
     if (this.input.has(Keys.right) && this.player.position.x < 400) {
+      // player can move horizontally before he reaches 400px
       this.player.velocity.x = this.player.speed;
     } else if (
       this.input.has(Keys.left) &&
-      (this.player.position.x > 100 ||
-        (this.scrollOffset === 0 && this.player.position.x > 0))
+      this.player.position.x > 10
+      // || (this.scrollOffset === 0 && this.player.position.x > 0))
     ) {
+      // he cannot returns back more than 10px
       this.player.velocity.x = -this.player.speed;
     } else {
+      // when player reached 400 px he stands and decorations start move(parallax)
       this.player.velocity.x = 0;
 
-      // while player stands
       if (this.input.has(Keys.right)) {
         // enlarge scoring
-        this.scrollOffset += this.player.speed;
+        this.score += this.player.speed;
 
         // scroll platforms
         this.platforms.forEach((platform) => {
@@ -50,9 +58,9 @@ export class Game {
         this.decorations.forEach((decoration) => {
           decoration.position.x -= this.player.speed * 0.5;
         });
-      } else if (this.input.has(Keys.left) && this.scrollOffset > 0) {
+      } else if (this.input.has(Keys.left) /*&& this.scrollOffset > 0*/) {
         // reduce scoring
-        this.scrollOffset -= this.player.speed;
+        this.score -= this.player.speed;
 
         // scroll platforms
         this.platforms.forEach((platform) => {
@@ -90,7 +98,7 @@ export class Game {
       platform.update();
     });
 
-    this.player.update(this.input);
+    this.player.update();
   }
 
   private displayStatus() {
@@ -106,15 +114,50 @@ export class Game {
 
     if (this.isPaused) {
       this.ctx.fillText("Paused, press Esc to back to game", width, 200);
-    } else if (this.isGameOver) {
-      this.ctx.fillText('GAME OVER', width, 200);
-      this.ctx.fillText(`You scored ${this.score}`, width, 240);
-      this.ctx.fillText(`Press Enter to try again!`, width, 280);
+      return;
+    }
+
+    if (this.state === "idle") return;
+
+    const text = this.state === "lose" ? "GAME OVER" : "YOU WIN";
+    this.ctx.fillText(text, width, 200);
+    this.ctx.fillText(`You scored ${this.score}`, width, 240);
+    this.ctx.fillText(`Press Enter to try again!`, width, 280);
+  }
+
+  private animate() {
+    // recursive running
+    requestAnimationFrame(this.animate);
+    this.displayStatus();
+
+    // on pause
+    if (this.isPaused) return;
+
+    // on restart
+    if (this.state === "lose" || this.state === "win") {
+      if (!this.input.has(Keys.enter)) return;
+      this.reset();
+    }
+
+    // render
+    this.render();
+
+    // move handler
+    this.move();
+
+    // detect win: reach end of the last platform
+    if (this.platforms[this.platforms.length - 1].position.x < 0) {
+      this.state = "win";
+    }
+
+    // detect lose: fell from platform or touched by enemy
+    if (this.player.position.y > this.canvas.height) {
+      this.state = "lose";
     }
   }
 
   private reset() {
-    this.isGameOver = false;
+    this.state = "idle";
     this.score = 0;
 
     this.decorations.forEach((decoration) => {
@@ -128,50 +171,7 @@ export class Game {
     this.player.reset();
   }
 
-  private animate() {
-    // recursive running
-    requestAnimationFrame(this.animate);
-    this.displayStatus();
-
-    // check pause
-    // if (this.isPaused) {
-    //   if (!this.input.has(Keys.pause)) return;
-    //   this.isPaused = false;
-    // }
-
-    // check restart
-    if (this.isGameOver) {
-      if (!this.input.has(Keys.enter)) return;
-      this.reset();
-    }
-
-    // render
-    this.render();
-
-    // move handler
-    this.move();
-
-    // detect win
-    if (
-      this.player.position.x >
-      this.platforms[this.platforms.length - 1].position.x
-    ) {
-      console.log("you are win");
-      return;
-    }
-
-    // detect lose: fell from platform or touched by enemy
-    if (this.player.position.y > this.canvas.height) {
-      this.isGameOver = true;
-    }
-
-    // detect pause
-    if (this.input.has(Keys.pause)) {
-      this.isPaused = true;
-    }
-  }
-
-  run() {
+  start() {
     this.animate();
   }
 }
