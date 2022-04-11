@@ -1,43 +1,14 @@
-import { CanvasObject, CanvasObjectOpts } from "./canvasObject";
+import { CanvasObject } from "./canvasObject";
+import { Input } from "./input";
 import { Keys } from "./typings";
 
 export class Player extends CanvasObject {
-  constructor(protected canvas: HTMLCanvasElement, opts: CanvasObjectOpts) {
-    super(canvas, opts);
-
-    addEventListener("keydown", this.run.bind(this));
-    addEventListener("keyup", this.stand.bind(this));
-
-    // this.input?.on(Keys.up, () => {
-    //   this.velocity.y -= 20;
-    // });
-
-    // this.input?.on(Keys.space, () => {
-    //   this.velocity.y -= 20;
-    // });
-
-    // this.input?.on(Keys.right, () => {
-    //   this.img = this.imgList![2];
-    //   this.width = this.img.maxWidth!;
-    // });
-
-    // this.input?.onUp(Keys.right, () => {
-    //   this.img = this.imgList![0];
-    //   this.width = this.img.maxWidth!;
-    // });
-
-    // this.input?.on(Keys.left, () => {
-    //   this.img = this.imgList![3];
-    //   this.width = this.img.maxWidth!;
-    // });
-
-    // this.input?.onUp(Keys.left, () => {
-    //   this.img = this.imgList![1];
-    //   this.width = this.img.maxWidth!;
-    // });
+  useInput(input: Input) {
+    input.on([Keys.left, Keys.up, Keys.right], this.run.bind(this));
+    input.off([Keys.left, Keys.right], this.stand.bind(this));
   }
 
-  update() {
+  update(ctx: CanvasRenderingContext2D) {
     // next sprite frame
     if (this.img?.frame != null) {
       this.img.frame!++;
@@ -47,7 +18,7 @@ export class Player extends CanvasObject {
     }
 
     // rerender
-    super.update();
+    super.update(ctx);
 
     // step
     this.position.x += this.velocity.x;
@@ -59,8 +30,8 @@ export class Player extends CanvasObject {
     }
   }
 
-  run(e: KeyboardEvent) {
-    switch (e.key) {
+  run(key: string) {
+    switch (key) {
       case Keys.up:
       case Keys.space:
         this.velocity.y -= 20;
@@ -77,8 +48,8 @@ export class Player extends CanvasObject {
     }
   }
 
-  stand(e: KeyboardEvent) {
-    switch (e.key) {
+  stand(key: string) {
+    switch (key) {
       case Keys.right:
         this.img = this.imgList![0];
         this.width = this.img.maxWidth!;

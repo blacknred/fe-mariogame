@@ -11,3 +11,61 @@ body {
   justify-content: center;
   height: 100vh;
 }
+
+.control {
+  position: fixed;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: aliceblue;
+  font-size: 2.5rem;
+}
+
+.control.top {
+  right: 2rem;
+  top: 1rem;
+}
+
+.control.top span {
+  margin-left: 1.5rem;
+}
+
+.control.top span:last-child {
+  background-color: rgb(106, 149, 176);
+  padding: 0px 15px;
+  border-radius: 10px;
+  transform: scale(0.8);
+}
+
+.control.top span:nth-child(1)::before {
+  content: "\23F8";
+}
+
+.control.top span:nth-child(2)::before {
+  content: "\2681";
+}
+
+.control.move {
+  right: 2rem;
+  bottom: 2.5rem;
+  background-color: rgba(106, 149, 176, 0.6);
+  border-radius: 50%;
+  padding: 1rem;
+}
+
+.control.move span:nth-child(2) {
+  margin-bottom: 4rem;
+}
+
+.control.move span:nth-child(1)::before {
+  content: "\21E6";
+}
+
+.control.move span:nth-child(2)::before {
+  content: "\21E7";
+}
+
+.control.move span:nth-child(3)::before {
+  content: "\21E8";
+}

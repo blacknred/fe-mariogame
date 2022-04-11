@@ -1,13 +1,9 @@
-import { Input } from "./input";
 import { Axes, Size, Sprite } from "./typings";
 
 export interface CanvasObjectOpts extends Axes, Partial<Size> {
   imgs?: (string | (Omit<Sprite, "img"> & { img: string }))[];
 }
 export abstract class CanvasObject {
-  // canvas ref
-  protected ctx: CanvasRenderingContext2D;
-
   // object size
   public width = 0;
   public height = 0;
@@ -23,14 +19,13 @@ export abstract class CanvasObject {
   public speed = 10;
   protected gravity = 1.5;
 
-  // img
+  // sprite
   protected img?: Sprite;
   protected imgList?: Sprite[];
 
-  constructor(protected canvas: HTMLCanvasElement, opts: CanvasObjectOpts) {
+  constructor(opts: CanvasObjectOpts) {
     const { imgs, width, height, ...position } = opts;
 
-    this.ctx = this.canvas.getContext("2d")!;
     this.initialPosition = { ...position };
     this.position = position;
 
@@ -54,7 +49,7 @@ export abstract class CanvasObject {
     this.height = height || this.img?.img.height || this.height;
   }
 
-  private draw() {
+  private draw(ctx: CanvasRenderingContext2D) {
     const { x, y } = this.position;
 
     if (this.img) {
@@ -63,17 +58,17 @@ export abstract class CanvasObject {
       if (cropWidth && frame) {
         const crop = [cropWidth * frame, 0, cropWidth, img.height] as const;
 
-        this.ctx.drawImage(img, ...crop, x, y, this.width, this.height);
+        ctx.drawImage(img, ...crop, x, y, this.width, this.height);
       } else {
-        this.ctx.drawImage(img, x, y, this.width, this.height);
+        ctx.drawImage(img, x, y, this.width, this.height);
       }
     } else {
-      this.ctx.fillRect(x, y, this.width, this.height);
+      ctx.fillRect(x, y, this.width, this.height);
     }
   }
 
-  public update(input?: Input) {
-    this.draw();
+  public update(ctx: CanvasRenderingContext2D) {
+    this.draw(ctx);
   }
 
   public reset() {
@@ -95,6 +90,6 @@ export abstract class CanvasObject {
   }
 
   protected onGround() {
-    return this.totalY + this.velocity.y >= this.canvas.height;
+    return this.totalY + this.velocity.y >= document.body.clientHeight; //this.canvas.height;
   }
 }

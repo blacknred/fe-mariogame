@@ -6,6 +6,9 @@ export enum Keys {
   enter = "Enter",
   pause = "Escape",
   space = " ",
+  swipeUp = 'SwipeUp',
+  swipeDown = 'SwipeDown',
+  any = ''
 }
 
 export type Axes = {
