@@ -1,17 +1,16 @@
 import { CanvasObject, CanvasObjectOpts } from "./canvasObject";
-import { Axes } from "./typings";
 
-export interface EnemyOpts extends Omit<CanvasObjectOpts, keyof Axes> {
+export interface GiftOpts extends CanvasObjectOpts {
   score: number;
 }
 
-export class Enemy extends CanvasObject {
+export class Gift extends CanvasObject {
   score: number;
   hidden = false;
 
-  constructor(opts: EnemyOpts) {
+  constructor(opts: GiftOpts) {
     const { score, ...rest } = opts;
-    super({ ...rest, x: -1, y: -1 });
+    super(rest);
 
     this.score = score;
   }

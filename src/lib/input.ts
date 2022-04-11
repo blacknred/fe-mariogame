@@ -14,18 +14,18 @@ export class Input {
     this.addKey = this.addKey.bind(this);
     this.removeKey = this.removeKey.bind(this);
 
-    this.addTouch = this.addTouch.bind(this);
-    this.removeTouch = this.removeTouch.bind(this);
-    this.touchMove = this.touchMove.bind(this);
+    // this.addTouch = this.addTouch.bind(this);
+    // this.removeTouch = this.removeTouch.bind(this);
+    // this.touchMove = this.touchMove.bind(this);
 
     window.addEventListener("keydown", this.addKey);
     window.addEventListener("keyup", this.removeKey);
     window.addEventListener("mousedown", this.addKey);
     window.addEventListener("mouseup", this.removeKey);
 
-    window.addEventListener("touchstart", this.addTouch);
-    window.addEventListener("touchmove", this.touchMove);
-    window.addEventListener("touchend", this.removeTouch);
+    window.addEventListener("touchstart", this.addKey);
+    // window.addEventListener("touchmove", this.touchMove);
+    window.addEventListener("touchend", this.removeKey);
   }
 
   /** Key accessor */
@@ -56,7 +56,7 @@ export class Input {
 
   // internals
 
-  private getKey(e: KeyboardEvent | MouseEvent) {
+  private getKey(e: KeyboardEvent | MouseEvent | TouchEvent) {
     if (e instanceof KeyboardEvent) {
       return e.key;
     }
@@ -68,7 +68,7 @@ export class Input {
     return null;
   }
 
-  private addKey(e: KeyboardEvent | MouseEvent) {
+  private addKey(e: KeyboardEvent | MouseEvent | TouchEvent) {
     const key = this.getKey(e);
     if (!key) return;
 
@@ -81,7 +81,7 @@ export class Input {
     }
   }
 
-  private removeKey(e: KeyboardEvent | MouseEvent) {
+  private removeKey(e: KeyboardEvent | MouseEvent | TouchEvent) {
     const key = this.getKey(e);
     if (!key) return;
 
@@ -106,23 +106,22 @@ export class Input {
     }
   }
 
-  //
-
-  private addTouch(e: TouchEvent) {
-    this.touchY = e.changedTouches[0].pageY;
-  }
-  private touchMove(e: TouchEvent) {
-    const distance = e.changedTouches[0].pageY - this.touchY;
-    if (distance < -30 && !this.keys.has(Keys.swipeUp)) {
-      // swipe up
-      this.keys.add(Keys.swipeUp);
-    } else if (distance > 30 && !this.keys.has(Keys.swipeDown)) {
-      // swipe down
-      this.keys.add(Keys.swipeDown);
-    }
-  }
-  private removeTouch(e: TouchEvent) {
-    this.keys.delete(Keys.swipeDown);
-    this.keys.delete(Keys.swipeUp);
-  }
+  // private addTouch(e: TouchEvent) {
+  //   console.log(e)
+  //   this.touchY = e.changedTouches[0].pageY;
+  // }
+  // private touchMove(e: TouchEvent) {
+  //   const distance = e.changedTouches[0].pageY - this.touchY;
+  //   if (distance < -30 && !this.keys.has(Keys.swipeUp)) {
+  //     // swipe up
+  //     this.keys.add(Keys.swipeUp);
+  //   } else if (distance > 30 && !this.keys.has(Keys.swipeDown)) {
+  //     // swipe down
+  //     this.keys.add(Keys.swipeDown);
+  //   }
+  // }
+  // private removeTouch(e: TouchEvent) {
+  //   this.keys.delete(Keys.swipeDown);
+  //   this.keys.delete(Keys.swipeUp);
+  // }
 }

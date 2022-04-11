@@ -1,22 +1,28 @@
-import { Decoration, Input, Player } from "./lib";
+import { Decoration, Enemy, Gift, Input, Platform, Player } from "./lib";
 import { Keys } from "./lib/typings";
 
 export class Game {
+  // input
+  private input: Input;
+
   // canvas
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
 
   // state
-  isPaused = false;
-  state: "idle" | "win" | "lose" = "idle";
-  score = 0;
+  private isPaused = false;
+  private state: "idle" | "win" | "lose" = "idle";
+  private score = 0;
 
   constructor(
-    private input: Input,
-    private player: Player,
-    private platforms: Decoration[],
-    private decorations: Decoration[]
+    private decorations: Decoration[],
+    private platforms: Platform[],
+    private gifts: Gift[],
+    private player: Player
   ) {
+    // input
+    this.input = new Input(Object.values(Keys));
+
     // bindings
     this.animate = this.animate.bind(this);
 
@@ -59,9 +65,33 @@ export class Game {
 
   private render() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const { width: pwidth, height: pheight } = this.player;
+    const { x: px, y: py } = this.player.position;
 
+    // put in order
     this.decorations.forEach((decoration) => decoration.update(this.ctx));
-    this.platforms.forEach((platform) => platform.update(this.ctx));
+
+    this.platforms.forEach((platform) => {
+      platform.update(this.ctx);
+    });
+
+    this.gifts.forEach((gift) => {
+      if (gift.hidden) return;
+
+      gift.update(this.ctx);
+      const { width, height, score } = gift;
+      const { x, y } = gift.position;
+
+      const dx = x + width / 1.8 - (px + pwidth / 1.8);
+      const dy = y + height / 1.8 - (py + pheight / 1.8);
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < width / 2 + pwidth / 2) {
+        gift.hidden = true;
+        this.score += score;
+      }
+    });
+
     this.player.update(this.ctx);
   }
 
@@ -103,6 +133,7 @@ export class Game {
 
     this.decorations.forEach((decoration) => decoration.reset());
     this.platforms.forEach((platform) => platform.reset());
+    this.gifts.forEach((gift) => gift.reset());
     this.player.reset();
   }
 
@@ -166,12 +197,14 @@ export class Game {
       this.player.velocity.x = 0;
 
       if (this.input.has(Keys.right)) {
-        // enlarge scoring
-        this.score += this.player.speed;
-
         // scroll platforms
         this.platforms.forEach((platform) => {
           platform.position.x -= this.player.speed;
+        });
+
+        // scroll gifts
+        this.gifts.forEach((gift) => {
+          gift.position.x -= this.player.speed;
         });
 
         // scroll decorations with parallax due the smaller step
@@ -179,12 +212,14 @@ export class Game {
           decoration.position.x -= this.player.speed * 0.5;
         });
       } else if (this.input.has(Keys.left) /*&& this.scrollOffset > 0*/) {
-        // reduce scoring
-        this.score -= this.player.speed;
-
         // scroll platforms
         this.platforms.forEach((platform) => {
           platform.position.x += this.player.speed;
+        });
+
+        // scroll gifts
+        this.gifts.forEach((gift) => {
+          gift.position.x += this.player.speed;
         });
 
         // scroll decorations with parallax due the smaller step
@@ -194,7 +229,7 @@ export class Game {
       }
     }
 
-    // platform logic: player is holded on platform
+    // platform logic: player on platform
     this.platforms.forEach((platform) => {
       if (this.player.totalY > platform.position.y) return;
       if (this.player.totalY + this.player.velocity.y < platform.position.y)
