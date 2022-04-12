@@ -1,5 +1,5 @@
 import { Game } from "./game";
-import { Decoration, Enemy, Gift, Platform, Player } from "./lib";
+import { Decoration, Platform, PlatformObject, Player } from "./lib";
 import bgImg from "./sprites/bg.png";
 import giftImg from "./sprites/gift.png";
 import gift2Img from "./sprites/gift2.png";
@@ -32,6 +32,12 @@ addEventListener("load", function () {
         imgs: [platform2Img],
         x: 580 + 300,
         y: 270,
+        gifts: [
+          new PlatformObject({
+            imgs: [giftImg],
+            score: 100,
+          }),
+        ],
       }),
       new Platform({
         imgs: [platform2Img],
@@ -43,6 +49,7 @@ addEventListener("load", function () {
         x: 580 * 5 + 400,
         y: 270,
       }),
+      //
       new Platform({
         imgs: [platformImg],
         x: -1,
@@ -53,9 +60,9 @@ addEventListener("load", function () {
         x: 580 + 150,
         y: 450,
         enemies: [
-          new Enemy({
-            width: 50,
-            height: 50,
+          new PlatformObject({
+            width: 60,
+            height: 60,
             score: 200,
           }),
         ],
@@ -64,6 +71,24 @@ addEventListener("load", function () {
         imgs: [platformImg],
         x: 580 * 2 + 400,
         y: 450,
+        gifts: [
+          new PlatformObject({
+            imgs: [giftImg],
+            score: 100,
+          }),
+          new PlatformObject({
+            imgs: [gift2Img],
+            x: 580 * 2 + 400,
+            y: 210,
+            score: 50,
+          }),
+          new PlatformObject({
+            imgs: [gift2Img],
+            x: 580 * 2 + 500,
+            y: 180,
+            score: 50,
+          }),
+        ],
       }),
       new Platform({
         imgs: [platformImg],
@@ -79,32 +104,6 @@ addEventListener("load", function () {
         imgs: [platformImg],
         x: 580 * 5 + 1000,
         y: 450,
-      }),
-    ],
-    [
-      new Gift({
-        imgs: [giftImg],
-        x: 200,
-        y: 200,
-        score: 100,
-      }),
-      new Gift({
-        imgs: [giftImg],
-        x: 900,
-        y: 210,
-        score: 100,
-      }),
-      new Gift({
-        imgs: [gift2Img],
-        x: 550,
-        y: 210,
-        score: 50,
-      }),
-      new Gift({
-        imgs: [gift2Img],
-        x: 640,
-        y: 180,
-        score: 50,
       }),
     ],
     new Player({

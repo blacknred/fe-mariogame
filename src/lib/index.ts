@@ -1,6 +1,7 @@
-export * from "./player";
-export * from "./decoration";
 export * from "./input";
+export * from "./canvasObject";
+export * from "./decoration";
 export * from "./platform";
-export * from "./enemy";
-export * from "./gift";
+export * from "./platformObject";
+export * from "./player";
+

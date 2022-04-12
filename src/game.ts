@@ -1,4 +1,4 @@
-import { Decoration, Enemy, Gift, Input, Platform, Player } from "./lib";
+import { Decoration, Input, Platform, Player } from "./lib";
 import { Keys } from "./lib/typings";
 
 export class Game {
@@ -17,7 +17,6 @@ export class Game {
   constructor(
     private decorations: Decoration[],
     private platforms: Platform[],
-    private gifts: Gift[],
     private player: Player
   ) {
     // input
@@ -49,50 +48,18 @@ export class Game {
     this.player.useInput(this.input);
     const moveCtrl = document.body.appendChild(document.createElement("div"));
     moveCtrl.classList.add("control", "move");
-    this.input.mouse(
+    this.input.click(
       moveCtrl.appendChild(document.createElement("span")),
       Keys.left
     );
-    this.input.mouse(
+    this.input.click(
       moveCtrl.appendChild(document.createElement("span")),
       Keys.up
     );
-    this.input.mouse(
+    this.input.click(
       moveCtrl.appendChild(document.createElement("span")),
       Keys.right
     );
-  }
-
-  private render() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    const { width: pwidth, height: pheight } = this.player;
-    const { x: px, y: py } = this.player.position;
-
-    // put in order
-    this.decorations.forEach((decoration) => decoration.update(this.ctx));
-
-    this.platforms.forEach((platform) => {
-      platform.update(this.ctx);
-    });
-
-    this.gifts.forEach((gift) => {
-      if (gift.hidden) return;
-
-      gift.update(this.ctx);
-      const { width, height, score } = gift;
-      const { x, y } = gift.position;
-
-      const dx = x + width / 1.8 - (px + pwidth / 1.8);
-      const dy = y + height / 1.8 - (py + pheight / 1.8);
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance < width / 2 + pwidth / 2) {
-        gift.hidden = true;
-        this.score += score;
-      }
-    });
-
-    this.player.update(this.ctx);
   }
 
   private animate() {
@@ -133,7 +100,6 @@ export class Game {
 
     this.decorations.forEach((decoration) => decoration.reset());
     this.platforms.forEach((platform) => platform.reset());
-    this.gifts.forEach((gift) => gift.reset());
     this.player.reset();
   }
 
@@ -180,57 +146,41 @@ export class Game {
 
   // TODO: can be refactored to canvasObject?
 
-  private move() {
-    // player & decorations move logic
-    if (this.input.has(Keys.right) && this.player.position.x < 400) {
-      // player can move horizontally before he reaches 400px
-      this.player.velocity.x = this.player.speed;
-    } else if (
-      this.input.has(Keys.left) &&
-      this.player.position.x > 10
-      // || (this.scrollOffset === 0 && this.player.position.x > 0))
-    ) {
-      // he cannot returns back more than 10px
-      this.player.velocity.x = -this.player.speed;
-    } else {
-      // when player reached 400 px he stands and decorations start move(parallax)
-      this.player.velocity.x = 0;
+  private render() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-      if (this.input.has(Keys.right)) {
-        // scroll platforms
-        this.platforms.forEach((platform) => {
-          platform.position.x -= this.player.speed;
-        });
+    this.decorations.forEach((decoration) => decoration.update(this.ctx));
 
-        // scroll gifts
-        this.gifts.forEach((gift) => {
-          gift.position.x -= this.player.speed;
-        });
-
-        // scroll decorations with parallax due the smaller step
-        this.decorations.forEach((decoration) => {
-          decoration.position.x -= this.player.speed * 0.5;
-        });
-      } else if (this.input.has(Keys.left) /*&& this.scrollOffset > 0*/) {
-        // scroll platforms
-        this.platforms.forEach((platform) => {
-          platform.position.x += this.player.speed;
-        });
-
-        // scroll gifts
-        this.gifts.forEach((gift) => {
-          gift.position.x += this.player.speed;
-        });
-
-        // scroll decorations with parallax due the smaller step
-        this.decorations.forEach((decoration) => {
-          decoration.position.x += this.player.speed * 0.5;
-        });
-      }
-    }
-
-    // platform logic: player on platform
     this.platforms.forEach((platform) => {
+      const { x } = platform.position;
+
+      // if platform not in viewport dont render it
+      if (this.player.position.x - x > this.canvas.width) return;
+      if (x - this.player.position.x > this.canvas.width) return;
+
+      platform.update(this.ctx);
+
+      platform.enemies.forEach((enemy) => {
+        if (enemy.hidden) return;
+        enemy.update(this.ctx);
+
+        if (this.player.hasCollision(enemy)) {
+          enemy.hidden = true;
+          this.state = "lose";
+        }
+      });
+
+      platform.gifts.forEach((gift) => {
+        if (gift.hidden) return;
+        gift.update(this.ctx);
+
+        if (this.player.hasCollision(gift)) {
+          gift.hidden = true;
+          this.score += gift.score;
+        }
+      });
+
+      // player is hold on platform
       if (this.player.totalY > platform.position.y) return;
       if (this.player.totalY + this.player.velocity.y < platform.position.y)
         return;
@@ -239,5 +189,44 @@ export class Game {
         this.player.velocity.y = 0;
       }
     });
+
+    this.player.update(this.ctx);
+  }
+
+  private move() {
+    // player & decorations move logic
+    if (this.input.has(Keys.right) && this.player.position.x < 400) {
+      // player can move horizontally before he reaches 400px
+      this.player.velocity.x = this.player.speed;
+    } else if (
+      this.input.has(Keys.left) &&
+      this.player.position.x > 100
+      // || (this.scrollOffset === 0 && this.player.position.x > 0))
+    ) {
+      // he cannot returns back more than 500px
+      this.player.velocity.x = -this.player.speed;
+    } else {
+      // when player reached 400 px he stands and decorations start move(parallax)
+      this.player.velocity.x = 0;
+
+      // scroll decorations with parallax due the smaller step and platforms
+      if (this.input.has(Keys.right)) {
+        this.platforms.forEach((platform) => {
+          platform["position.x"] -= this.player.speed;
+        });
+
+        this.decorations.forEach((decoration) => {
+          decoration.position.x -= this.player.speed * 0.5;
+        });
+      } else if (this.input.has(Keys.left) /*&& this.scrollOffset > 0*/) {
+        this.platforms.forEach((platform) => {
+          platform["position.x"] += this.player.speed;
+        });
+
+        this.decorations.forEach((decoration) => {
+          decoration.position.x += this.player.speed * 0.5;
+        });
+      }
+    }
   }
 }

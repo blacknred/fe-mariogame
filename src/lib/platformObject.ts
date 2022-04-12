@@ -1,17 +1,19 @@
 import { CanvasObject, CanvasObjectOpts } from "./canvasObject";
 import { Axes } from "./typings";
 
-export interface EnemyOpts extends Omit<CanvasObjectOpts, keyof Axes> {
+export interface PlatformObjectOpts
+  extends Omit<CanvasObjectOpts, keyof Axes>,
+    Partial<Axes> {
   score: number;
 }
 
-export class Enemy extends CanvasObject {
+export class PlatformObject extends CanvasObject {
   score: number;
   hidden = false;
 
-  constructor(opts: EnemyOpts) {
+  constructor(opts: PlatformObjectOpts) {
     const { score, ...rest } = opts;
-    super({ ...rest, x: -1, y: -1 });
+    super({ x: -1, y: -1, ...rest });
 
     this.score = score;
   }

@@ -30,6 +30,19 @@ export class Player extends CanvasObject {
     }
   }
 
+  // own
+
+  hasCollision(target: CanvasObject) {
+    const { width: w, height: h } = target;
+    const { x, y } = target.position;
+
+    const dx = x + w / 2 - (this.position.x + this.width / 2);
+    const dy = y + h / 2 - (this.position.y + this.height / 2);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    return distance < w / 2 + this.width / 2;
+  }
+
   run(key: string) {
     switch (key) {
       case Keys.up:

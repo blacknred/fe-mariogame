@@ -1,35 +1,70 @@
 import { CanvasObject, CanvasObjectOpts } from "./canvasObject";
-import { Enemy } from "./enemy";
+import { PlatformObject } from "./platformObject";
+import { Axes } from "./typings";
 
 export interface PlatformOpts extends CanvasObjectOpts {
-  enemies?: Enemy[];
+  enemies?: PlatformObject[];
+  gifts?: PlatformObject[];
 }
 
 export class Platform extends CanvasObject {
-  enemies: Enemy[] = [];
+  enemies: PlatformObject[] = [];
+  gifts: PlatformObject[] = [];
 
   constructor(opts: PlatformOpts) {
-    const { enemies, ...rest } = opts;
+    const { enemies, gifts, ...rest } = opts;
     super(rest);
 
-    this.enemies = enemies || this.enemies;
+    if (enemies) {
+      this.enemies = enemies.map(this.mapPosition.bind(this));
+    }
+
+    if (gifts) {
+      this.gifts = gifts.map(this.mapPosition.bind(this));
+    }
   }
 
   public update(ctx: CanvasRenderingContext2D): void {
     super.update(ctx);
 
     this.enemies.forEach((enemy) => {
-      // enemy.position.y = this.position.y;
-      if (
-        enemy.position.x < this.totalX ||
-        enemy.position.x < this.position.x
-      ) {
-        enemy.position.x += 10;
+      if (enemy.totalX < this.totalX) {
+        enemy.position.x += 1;
       } else {
-        enemy.position.x -= 10;
+        enemy.position.x -= 1;
       }
 
-      enemy.update(ctx);
+      // enemy.update(ctx);
+    });
+  }
+
+  public reset() {
+    super.reset();
+
+    this.enemies.forEach((enemy) => enemy.reset());
+    this.gifts.forEach((gift) => gift.reset());
+  }
+
+  // own
+
+  private mapPosition(item: PlatformObject) {
+    const { x, y } = item.position;
+    const { height } = item;
+
+    if (x === -1) item.position.x = this.totalX - item.width;
+    if (y === -1) item.position.y = this.position.y - height;
+    return item;
+  }
+
+  get "position.x"() {
+    return this.position.x;
+  }
+
+  set "position.x"(x: number) {
+    this.position.x = x;
+
+    this.gifts.forEach((gift) => {
+      gift.position.x = x;
     });
   }
 }
