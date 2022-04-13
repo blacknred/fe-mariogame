@@ -31,7 +31,7 @@ addEventListener("load", function () {
       new Platform({
         imgs: [platform2Img],
         x: 580 + 300,
-        y: 270,
+        y: 225,
         gifts: [
           new PlatformObject({
             imgs: [giftImg],
@@ -42,12 +42,12 @@ addEventListener("load", function () {
       new Platform({
         imgs: [platform2Img],
         x: 580 * 2 + 600,
-        y: 270,
+        y: 225,
       }),
       new Platform({
         imgs: [platform2Img],
         x: 580 * 5 + 400,
-        y: 270,
+        y: 225,
       }),
       //
       new Platform({

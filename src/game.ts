@@ -6,7 +6,6 @@ export class Game {
   private input: Input;
 
   // canvas
-  private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
 
   // state
@@ -20,78 +19,48 @@ export class Game {
     private player: Player
   ) {
     // input
-    this.input = new Input(Object.values(Keys));
+    this.input = Input.getInstance();
 
-    // bindings
-    this.animate = this.animate.bind(this);
+    // find last platform
+    [...this.platforms].sort((a, b) => b.totalX - a.totalX)[0].isLast = true;
 
     // canvas
-    this.canvas = document.body.appendChild(document.createElement("canvas"));
-    this.canvas.width = document.body.clientWidth;
-    this.canvas.height = document.body.clientHeight;
-    this.ctx = this.canvas.getContext("2d")!;
+    this.ctx = document.body
+      .appendChild(document.createElement("canvas"))
+      .getContext("2d")!;
+    this.ctx.canvas.width = document.body.clientWidth;
+    this.ctx.canvas.height = document.body.clientHeight;
     this.ctx.font = "22px Helvetica";
     this.ctx.fillStyle = "white";
 
-    // game control block
+    // game controls
     this.input.on(Keys.pause, this.pause.bind(this));
-    const topCtrl = document.body.appendChild(document.createElement("div"));
-    topCtrl.classList.add("control", "top");
-    topCtrl
+    const header = document.body.appendChild(document.createElement("div"));
+    header.classList.add("control", "top");
+    header
       .appendChild(document.createElement("span"))
       .addEventListener("click", this.pause.bind(this));
-    topCtrl
+    header
       .appendChild(document.createElement("span"))
       .addEventListener("click", this.fullScreen.bind(this));
 
-    // move control block
-    this.player.useInput(this.input);
-    const moveCtrl = document.body.appendChild(document.createElement("div"));
-    moveCtrl.classList.add("control", "move");
+    // move controls
+    this.input.on([Keys.left, Keys.up, Keys.right], this.player.run);
+    this.input.off([Keys.left, Keys.right], this.player.stand);
+    const bottom = document.body.appendChild(document.createElement("div"));
+    bottom.classList.add("control", "move");
     this.input.click(
-      moveCtrl.appendChild(document.createElement("span")),
+      bottom.appendChild(document.createElement("span")),
       Keys.left
     );
     this.input.click(
-      moveCtrl.appendChild(document.createElement("span")),
+      bottom.appendChild(document.createElement("span")),
       Keys.up
     );
     this.input.click(
-      moveCtrl.appendChild(document.createElement("span")),
+      bottom.appendChild(document.createElement("span")),
       Keys.right
     );
-  }
-
-  private animate() {
-    // recursive running
-    requestAnimationFrame(this.animate);
-    this.displayStatus();
-
-    // on pause
-    if (this.isPaused) return;
-
-    // on restart
-    if (this.state === "lose" || this.state === "win") {
-      if (!this.input.has(Keys.enter)) return;
-      this.reset();
-    }
-
-    // render
-    this.render();
-    this.displayScore();
-
-    // move handler
-    this.move();
-
-    // detect win: reach end of the last platform
-    if (this.platforms[this.platforms.length - 1].position.x < 0) {
-      this.state = "win";
-    }
-
-    // detect lose: fell from platform or touched by enemy
-    if (this.player.position.y > this.canvas.height) {
-      this.state = "lose";
-    }
   }
 
   private reset() {
@@ -123,7 +92,7 @@ export class Game {
   }
 
   private displayStatus() {
-    const width = this.canvas.width / 2;
+    const width = this.ctx.canvas.width / 2;
     this.ctx.textAlign = "center";
 
     if (this.isPaused) {
@@ -140,93 +109,99 @@ export class Game {
     this.ctx.fillText(`Press Enter to try again!`, width, 280);
   }
 
+  private animate = () => {
+    // recursive running
+    requestAnimationFrame(this.animate);
+    this.displayStatus();
+
+    // on pause
+    if (this.isPaused) return;
+
+    // on restart
+    if (this.state === "lose" || this.state === "win") {
+      if (!this.input.has(Keys.enter)) return;
+      this.reset();
+    }
+
+    // render
+    this.render();
+    this.displayScore();
+  };
+
   start() {
     this.animate();
   }
 
-  // TODO: can be refactored to canvasObject?
+  // main game logic
 
   private render() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const { width: totalW, height: totalH } = this.ctx.canvas;
 
-    this.decorations.forEach((decoration) => decoration.update(this.ctx));
+    // clear canvas
+    this.ctx.clearRect(0, 0, totalW, totalH);
 
+    // render decorations
+    this.decorations.forEach((decoration) => {
+      // decoration moves with parallax(speed reduced twice)
+      if (this.input.has(Keys.right)) {
+        decoration.position.x -= decoration.speed * 0.5;
+      } else if (this.input.has(Keys.left)) {
+        decoration.position.x += decoration.speed * 0.5;
+      }
+
+      decoration.update(this.ctx);
+    });
+
+    // render platforms
     this.platforms.forEach((platform) => {
       const { x } = platform.position;
 
-      // if platform not in viewport dont render it
-      if (this.player.position.x - x > this.canvas.width) return;
-      if (x - this.player.position.x > this.canvas.width) return;
+      // platform moves
+      if (this.input.has(Keys.right)) {
+        platform["position.x"] -= platform.speed;
+      } else if (this.input.has(Keys.left)) {
+        platform["position.x"] += platform.speed;
+      }
+
+      // work only with platforms in viewport
+      if (this.player.position.x - x > totalW) return;
+      if (x - this.player.position.x > totalW) return;
 
       platform.update(this.ctx);
 
-      platform.enemies.forEach((enemy) => {
-        if (enemy.hidden) return;
-        enemy.update(this.ctx);
+      // work only with current platform
 
-        if (this.player.hasCollision(enemy)) {
+      // player is hold on the platform
+      this.player.stands(platform);
+
+      // check win: player reached end of the last platform
+      if (platform.isLast && platform.position.x < 0) {
+        this.state = "win";
+      }
+
+      platform.enemies.forEach((enemy) => {
+        // ckeck lose: player touched enemy
+        if (this.player.intersects(enemy)) {
           enemy.hidden = true;
           this.state = "lose";
         }
       });
 
       platform.gifts.forEach((gift) => {
-        if (gift.hidden) return;
-        gift.update(this.ctx);
-
-        if (this.player.hasCollision(gift)) {
+        // scoring: player touched gift
+        if (this.player.intersects(gift)) {
           gift.hidden = true;
           this.score += gift.score;
         }
       });
-
-      // player is hold on platform
-      if (this.player.totalY > platform.position.y) return;
-      if (this.player.totalY + this.player.velocity.y < platform.position.y)
-        return;
-      if (this.player.totalX < platform.position.x) return;
-      if (this.player.position.x <= platform.totalX) {
-        this.player.velocity.y = 0;
-      }
     });
 
+    // render player
     this.player.update(this.ctx);
-  }
 
-  private move() {
-    // player & decorations move logic
-    if (this.input.has(Keys.right) && this.player.position.x < 400) {
-      // player can move horizontally before he reaches 400px
-      this.player.velocity.x = this.player.speed;
-    } else if (
-      this.input.has(Keys.left) &&
-      this.player.position.x > 100
-      // || (this.scrollOffset === 0 && this.player.position.x > 0))
-    ) {
-      // he cannot returns back more than 500px
-      this.player.velocity.x = -this.player.speed;
-    } else {
-      // when player reached 400 px he stands and decorations start move(parallax)
-      this.player.velocity.x = 0;
-
-      // scroll decorations with parallax due the smaller step and platforms
-      if (this.input.has(Keys.right)) {
-        this.platforms.forEach((platform) => {
-          platform["position.x"] -= this.player.speed;
-        });
-
-        this.decorations.forEach((decoration) => {
-          decoration.position.x -= this.player.speed * 0.5;
-        });
-      } else if (this.input.has(Keys.left) /*&& this.scrollOffset > 0*/) {
-        this.platforms.forEach((platform) => {
-          platform["position.x"] += this.player.speed;
-        });
-
-        this.decorations.forEach((decoration) => {
-          decoration.position.x += this.player.speed * 0.5;
-        });
-      }
+    // check lose: player fell from a platform
+    if (this.player.position.y > totalH) {
+      this.state = "lose";
     }
   }
 }

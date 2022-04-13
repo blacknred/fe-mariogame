@@ -1,6 +1,5 @@
 import { CanvasObject, CanvasObjectOpts } from "./canvasObject";
 import { PlatformObject } from "./platformObject";
-import { Axes } from "./typings";
 
 export interface PlatformOpts extends CanvasObjectOpts {
   enemies?: PlatformObject[];
@@ -10,6 +9,7 @@ export interface PlatformOpts extends CanvasObjectOpts {
 export class Platform extends CanvasObject {
   enemies: PlatformObject[] = [];
   gifts: PlatformObject[] = [];
+  isLast = false;
 
   constructor(opts: PlatformOpts) {
     const { enemies, gifts, ...rest } = opts;
@@ -27,22 +27,35 @@ export class Platform extends CanvasObject {
   public update(ctx: CanvasRenderingContext2D): void {
     super.update(ctx);
 
-    this.enemies.forEach((enemy) => {
-      if (enemy.totalX < this.totalX) {
-        enemy.position.x += 1;
-      } else {
-        enemy.position.x -= 1;
+    this.enemies.forEach((item) => {
+      if (item.hidden) return;
+      item.update(ctx);
+
+      if (item.totalX > this.totalX) {
+        item.direction = "left";
+      } else if (item.position.x < this.position.x) {
+        item.direction = "right";
       }
 
-      // enemy.update(ctx);
+      // enemies move from edge to edge
+      if (item.direction === "right") {
+        item.velocity.x = 1;
+      } else {
+        item.velocity.x = -1;
+      }
+    });
+
+    this.gifts.forEach((item) => {
+      if (item.hidden) return;
+      item.update(ctx);
     });
   }
 
   public reset() {
     super.reset();
 
-    this.enemies.forEach((enemy) => enemy.reset());
-    this.gifts.forEach((gift) => gift.reset());
+    this.enemies.forEach((item) => item.reset());
+    this.gifts.forEach((item) => item.reset());
   }
 
   // own
@@ -51,7 +64,7 @@ export class Platform extends CanvasObject {
     const { x, y } = item.position;
     const { height } = item;
 
-    if (x === -1) item.position.x = this.totalX - item.width;
+    if (x === -1) item.position.x = this.position.x;
     if (y === -1) item.position.y = this.position.y - height;
     return item;
   }
@@ -63,8 +76,12 @@ export class Platform extends CanvasObject {
   set "position.x"(x: number) {
     this.position.x = x;
 
-    this.gifts.forEach((gift) => {
-      gift.position.x = x;
+    this.gifts.forEach((item) => {
+      item.position.x = x;
+    });
+
+    this.enemies.forEach((item) => {
+      item.position.x = x;
     });
   }
 }

@@ -1,13 +1,7 @@
 import { CanvasObject } from "./canvasObject";
-import { Input } from "./input";
 import { Keys } from "./typings";
 
 export class Player extends CanvasObject {
-  useInput(input: Input) {
-    input.on([Keys.left, Keys.up, Keys.right], this.run.bind(this));
-    input.off([Keys.left, Keys.right], this.stand.bind(this));
-  }
-
   update(ctx: CanvasRenderingContext2D) {
     // next sprite frame
     if (this.img?.frame != null) {
@@ -24,15 +18,15 @@ export class Player extends CanvasObject {
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
 
-    // move acceleration | stopping
-    if (!this.onGround()) {
+    // while not on the ground accelerate the downing
+    if (!(this.totalY + this.velocity.y >= ctx.canvas.height)) {
       this.velocity.y += this.gravity;
     }
   }
 
   // own
 
-  hasCollision(target: CanvasObject) {
+  intersects(target: CanvasObject) {
     const { width: w, height: h } = target;
     const { x, y } = target.position;
 
@@ -43,7 +37,16 @@ export class Player extends CanvasObject {
     return distance < w / 2 + this.width / 2;
   }
 
-  run(key: string) {
+  stands(target: CanvasObject) {
+    if (this.totalY > target.position.y) return;
+    if (this.totalY + this.velocity.y < target.position.y) return;
+    if (this.totalX < target.position.x) return;
+    if (this.position.x <= target.totalX) {
+      this.velocity.y = 0;
+    }
+  }
+
+  run = (key: string) => {
     switch (key) {
       case Keys.up:
       case Keys.space:
@@ -59,9 +62,9 @@ export class Player extends CanvasObject {
         break;
       default:
     }
-  }
+  };
 
-  stand(key: string) {
+  stand = (key: string) => {
     switch (key) {
       case Keys.right:
         this.img = this.imgList![0];
@@ -73,5 +76,5 @@ export class Player extends CanvasObject {
         break;
       default:
     }
-  }
+  };
 }

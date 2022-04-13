@@ -3,6 +3,7 @@ import { Axes, Size, Sprite } from "./typings";
 export interface CanvasObjectOpts extends Axes, Partial<Size> {
   imgs?: (string | (Omit<Sprite, "img"> & { img: string }))[];
 }
+
 export abstract class CanvasObject {
   // object size
   public width = 0;
@@ -29,7 +30,7 @@ export abstract class CanvasObject {
     this.initialPosition = { ...position };
     this.position = position;
 
-    if (Array.isArray(imgs)) {
+    if (imgs) {
       this.imgList = imgs.map((img) => {
         const image = new Image();
 
@@ -47,6 +48,14 @@ export abstract class CanvasObject {
 
     this.width = width || this.img?.img.width || this.width;
     this.height = height || this.img?.img.height || this.height;
+  }
+
+  get totalY() {
+    return this.position.y + this.height;
+  }
+
+  get totalX() {
+    return this.position.x + this.width;
   }
 
   private draw(ctx: CanvasRenderingContext2D) {
@@ -74,22 +83,9 @@ export abstract class CanvasObject {
   public reset() {
     this.velocity = { x: 0, y: 0 };
     this.position = { ...this.initialPosition };
+    
     if (this.imgList?.length) {
       this.img = this.imgList[0];
     }
-  }
-
-  // extras
-
-  get totalY() {
-    return this.position.y + this.height;
-  }
-
-  get totalX() {
-    return this.position.x + this.width;
-  }
-
-  protected onGround() {
-    return this.totalY + this.velocity.y >= document.body.clientHeight; //this.canvas.height;
   }
 }

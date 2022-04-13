@@ -10,6 +10,7 @@ export interface PlatformObjectOpts
 export class PlatformObject extends CanvasObject {
   score: number;
   hidden = false;
+  direction: "left" | "right" = "right";
 
   constructor(opts: PlatformObjectOpts) {
     const { score, ...rest } = opts;
@@ -21,5 +22,12 @@ export class PlatformObject extends CanvasObject {
   public reset() {
     this.hidden = false;
     super.reset();
+  }
+
+  update(ctx: CanvasRenderingContext2D) {
+    // rerender
+    super.update(ctx);
+    // step
+    this.position.x += this.velocity.x;
   }
 }
