@@ -1,4 +1,5 @@
 import { CanvasObject, CanvasObjectOpts } from "./canvasObject";
+import { Platform } from "./platform";
 import { Axes } from "./typings";
 
 export interface PlatformObjectOpts
@@ -8,9 +9,12 @@ export interface PlatformObjectOpts
 }
 
 export class PlatformObject extends CanvasObject {
+  /** Scoring */
   score: number;
-  hidden = false;
-  direction: "left" | "right" = "right";
+  /** Platform */
+  platform?: Platform;
+  /** move direction */
+  moveTo: "left" | "right" = "right";
 
   constructor(opts: PlatformObjectOpts) {
     const { score, ...rest } = opts;
@@ -19,15 +23,30 @@ export class PlatformObject extends CanvasObject {
     this.score = score;
   }
 
-  public reset() {
-    this.hidden = false;
-    super.reset();
+  public update(ctx: CanvasRenderingContext2D): void {
+    super.update(ctx);
+
+    // check moving direction
+    if (!this.platform) return;
+
+    this.velocity.x = this.platform.velocity.x;
+
+    if (this.totalX > this.platform.totalX) {
+      this.moveTo = "left";
+    } else if (this.position.x < this.platform.position.x) {
+      this.moveTo = "right";
+    }
   }
 
-  update(ctx: CanvasRenderingContext2D) {
-    // rerender
-    super.update(ctx);
-    // step
-    this.position.x += this.velocity.x;
+  /** Move horizontally */
+
+  move() {
+    if (this.moveTo === "right") {
+      this.velocity.x += 1;
+    } else {
+      this.velocity.x -= 1;
+    }
+
+    return this;
   }
 }

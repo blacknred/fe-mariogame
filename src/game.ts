@@ -45,8 +45,8 @@ export class Game {
       .addEventListener("click", this.fullScreen.bind(this));
 
     // move controls
-    this.input.on([Keys.left, Keys.up, Keys.right], this.player.run);
-    this.input.off([Keys.left, Keys.right], this.player.stand);
+    this.input.on([Keys.left, Keys.up, Keys.right], this.player.move);
+    this.input.off([Keys.left, Keys.right], this.player.idle);
     const bottom = document.body.appendChild(document.createElement("div"));
     bottom.classList.add("control", "move");
     this.input.click(
@@ -141,57 +141,54 @@ export class Game {
     this.ctx.clearRect(0, 0, totalW, totalH);
 
     // render decorations
-    this.decorations.forEach((decoration) => {
-      // decoration moves with parallax(speed reduced twice)
+    this.decorations.forEach((item) => {
+      // move
       if (this.input.has(Keys.right)) {
-        decoration.position.x -= decoration.speed * 0.5;
+        item.moveLeft();
       } else if (this.input.has(Keys.left)) {
-        decoration.position.x += decoration.speed * 0.5;
+        item.moveRight();
+      } else {
+        item.idle();
       }
 
-      decoration.update(this.ctx);
+      // update
+      item.update(this.ctx);
     });
 
     // render platforms
     this.platforms.forEach((platform) => {
-      const { x } = platform.position;
-
-      // platform moves
+      // move
       if (this.input.has(Keys.right)) {
-        platform["position.x"] -= platform.speed;
+        platform.moveLeft();
       } else if (this.input.has(Keys.left)) {
-        platform["position.x"] += platform.speed;
+        platform.moveRight();
+      } else {
+        platform.idle();
       }
 
-      // work only with platforms in viewport
-      if (this.player.position.x - x > totalW) return;
-      if (x - this.player.position.x > totalW) return;
-
+      // update
       platform.update(this.ctx);
 
-      // work only with current platform
-
-      // player is hold on the platform
-      this.player.stands(platform);
+      // only current platform should be issued for state change
+      if (!this.player.standsOn(platform)) return;
 
       // check win: player reached end of the last platform
-      if (platform.isLast && platform.position.x < 0) {
+      if (platform.isLast) {
         this.state = "win";
       }
 
-      platform.enemies.forEach((enemy) => {
-        // ckeck lose: player touched enemy
-        if (this.player.intersects(enemy)) {
-          enemy.hidden = true;
+      platform.enemies.forEach((item) => {
+        // check lose: player touched enemy
+        if (this.player.intersects(item)) {
           this.state = "lose";
         }
       });
 
-      platform.gifts.forEach((gift) => {
+      platform.gifts.forEach((item) => {
         // scoring: player touched gift
-        if (this.player.intersects(gift)) {
-          gift.hidden = true;
-          this.score += gift.score;
+        if (this.player.intersects(item)) {
+          item.hidden = true;
+          this.score += item.score;
         }
       });
     });

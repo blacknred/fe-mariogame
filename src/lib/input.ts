@@ -1,12 +1,15 @@
+import { InputCb, Keys } from "./typings";
+
 export class Input {
+  static instance: Input;
   private keys = new Set<string>();
   private clickables = new Map<EventTarget, string>();
   private handlers = {
-    up: new Map<string, (key: string) => void>(),
-    down: new Map<string, (key: string) => void>(),
+    up: new Map<string, InputCb[]>(),
+    down: new Map<string, InputCb[]>(),
   };
 
-  constructor(private targets: KeyboardEvent["key"][]) {
+  private constructor(private targets: KeyboardEvent["key"][]) {
     this.addKey = this.addKey.bind(this);
     this.removeKey = this.removeKey.bind(this);
 
@@ -19,6 +22,14 @@ export class Input {
     // window.addEventListener("touchmove", this.coroutine(this.touchHandler));
   }
 
+  static getInstance() {
+    if (!Input.instance) {
+      Input.instance = new Input(Object.values(Keys));
+    }
+
+    return Input.instance;
+  }
+
   /** Key accessor */
 
   has(key: KeyboardEvent["key"]) {
@@ -27,13 +38,13 @@ export class Input {
 
   /** Add handler fires for key on press */
 
-  on(key: string | string[], cb: (key: string) => void) {
+  on(key: string | string[], cb: InputCb) {
     this.addHandler("down", key, cb);
   }
 
   /** Add handler fires for key on release */
 
-  off(key: string | string[], cb: (key: string) => void) {
+  off(key: string | string[], cb: InputCb) {
     this.addHandler("up", key, cb);
   }
 
@@ -68,7 +79,7 @@ export class Input {
     }
 
     if (this.handlers.down.has(key)) {
-      this.handlers.down.get(key)?.(key);
+      this.handlers.down.get(key)?.forEach((cb) => cb(key));
     }
   }
 
@@ -79,20 +90,21 @@ export class Input {
     this.keys.delete(key);
 
     if (this.handlers.up.has(key)) {
-      this.handlers.up.get(key)?.(key);
+      this.handlers.up.get(key)?.forEach((cb) => cb(key));
     }
   }
 
   private addHandler(
     target: "down" | "up",
     key: string | string[],
-    cb: (key: string) => void
+    cb: InputCb
   ) {
     const keys = Array.isArray(key) ? key : [key];
 
     for (let key of keys) {
       if (this.targets.includes(key)) {
-        this.handlers[target].set(key, cb);
+        const handlers = this.handlers[target].get(key) || [];
+        this.handlers[target].set(key, handlers.concat(cb));
       }
     }
   }

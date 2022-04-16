@@ -6,10 +6,10 @@ import gift2Img from "./sprites/gift2.png";
 import hillsImg from "./sprites/hills.png";
 import platformImg from "./sprites/platform.png";
 import platform2Img from "./sprites/platform2.png";
-import playerRunLeft from "./sprites/player_run_left.png";
-import playerRunRight from "./sprites/player_run_right.png";
-import playerStandLeft from "./sprites/player_stand_left.png";
-import playerStandRight from "./sprites/player_stand_right.png";
+import playerMoveLeft from "./sprites/player_move_left.png";
+import playerMoveRight from "./sprites/player_move_right.png";
+import playerIdleLeft from "./sprites/player_idle_left.png";
+import playerIdleRight from "./sprites/player_idle_right.png";
 import "./style.css";
 
 addEventListener("load", function () {
@@ -109,14 +109,14 @@ addEventListener("load", function () {
     new Player({
       imgs: [
         {
-          img: playerStandRight,
+          img: playerIdleRight,
           cropWidth: 177,
           maxWidth: 66,
           maxFrame: 59,
         },
-        { img: playerStandLeft, cropWidth: 177, maxWidth: 66, maxFrame: 59 },
-        { img: playerRunRight, cropWidth: 341, maxWidth: 129, maxFrame: 29 },
-        { img: playerRunLeft, cropWidth: 341, maxWidth: 129, maxFrame: 29 },
+        { img: playerIdleLeft, cropWidth: 177, maxWidth: 66, maxFrame: 59 },
+        { img: playerMoveRight, cropWidth: 341, maxWidth: 129, maxFrame: 29 },
+        { img: playerMoveLeft, cropWidth: 341, maxWidth: 129, maxFrame: 29 },
       ],
       width: 66,
       height: 150,

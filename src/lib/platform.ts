@@ -6,9 +6,19 @@ export interface PlatformOpts extends CanvasObjectOpts {
   gifts?: PlatformObject[];
 }
 
+class PlatformObjectCollection extends Array<PlatformObject> {
+  *[Symbol.iterator]() {
+    var i = 0;
+    while (i < this.length) {
+      if (this[i++].hidden) continue;
+      else yield this[i++];
+    }
+  }
+}
+
 export class Platform extends CanvasObject {
-  enemies: PlatformObject[] = [];
-  gifts: PlatformObject[] = [];
+  enemies = new PlatformObjectCollection();
+  gifts = new PlatformObjectCollection();
   isLast = false;
 
   constructor(opts: PlatformOpts) {
@@ -16,72 +26,52 @@ export class Platform extends CanvasObject {
     super(rest);
 
     if (enemies) {
-      this.enemies = enemies.map(this.mapPosition.bind(this));
+      this.enemies.push(...enemies.map(this.setChild.bind(this)));
     }
 
     if (gifts) {
-      this.gifts = gifts.map(this.mapPosition.bind(this));
+      this.gifts.push(...gifts.map(this.setChild.bind(this)));
     }
   }
 
   public update(ctx: CanvasRenderingContext2D): void {
+    // hide non viewport platform
+    const { width: w } = ctx.canvas;
+    const { x } = this.position;
+    this.hidden = 0 - x >= w || x - 0 >= w;
+
     super.update(ctx);
 
-    this.enemies.forEach((item) => {
-      if (item.hidden) return;
-      item.update(ctx);
-
-      if (item.totalX > this.totalX) {
-        item.direction = "left";
-      } else if (item.position.x < this.position.x) {
-        item.direction = "right";
-      }
-
-      // enemies move from edge to edge
-      if (item.direction === "right") {
-        item.velocity.x = 1;
-      } else {
-        item.velocity.x = -1;
-      }
-    });
-
-    this.gifts.forEach((item) => {
-      if (item.hidden) return;
-      item.update(ctx);
-    });
+    // update gifts & enemies
+    this.gifts.forEach((item) => item.update(ctx));
+    this.enemies.forEach((item) => item.move().update(ctx));
   }
 
   public reset() {
     super.reset();
 
-    this.enemies.forEach((item) => item.reset());
+    // reset gifts & enemies
     this.gifts.forEach((item) => item.reset());
+    this.enemies.forEach((item) => item.reset());
   }
 
-  // own
+  /** Child setting */
 
-  private mapPosition(item: PlatformObject) {
+  private setChild(item: PlatformObject) {
     const { x, y } = item.position;
     const { height } = item;
 
-    if (x === -1) item.position.x = this.position.x;
-    if (y === -1) item.position.y = this.position.y - height;
+    if (x === -1) {
+      item._position.x = this.position.x;
+      item.position.x = this.position.x;
+    }
+
+    if (y === -1) {
+      item._position.y = this.position.y - height;
+      item.position.y = this.position.y - height;
+    }
+
+    item.platform = this;
     return item;
-  }
-
-  get "position.x"() {
-    return this.position.x;
-  }
-
-  set "position.x"(x: number) {
-    this.position.x = x;
-
-    this.gifts.forEach((item) => {
-      item.position.x = x;
-    });
-
-    this.enemies.forEach((item) => {
-      item.position.x = x;
-    });
   }
 }

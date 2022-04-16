@@ -25,3 +25,5 @@ export type Sprite = {
   maxFrame?: number;
   maxWidth?: number;
 };
+
+export type InputCb = (key: string) => void;
